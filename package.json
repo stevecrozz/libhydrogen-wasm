@@ -1,0 +1,19 @@
+{
+  "name": "libhydrogen-wasm",
+  "version": "0.1.0",
+  "description": "LibHydrogen via WASM",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/stevecrozz/libhydrogen-wasm.git"
+  },
+  "author": "Stephen Crosby",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stevecrozz/libhydrogen-wasm/issues"
+  },
+  "homepage": "https://github.com/stevecrozz/libhydrogen-wasm#readme"
+}
