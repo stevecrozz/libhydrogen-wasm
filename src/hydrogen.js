@@ -162,7 +162,13 @@ const hydro_secretbox_probe_verify = (probe, cipherTextBytes, context, key) => {
   return result;
 };
 
-const result = Module.onRuntimeInitialized = () => {
+const ready = new Promise((resolve, reject) => {
+  Module.onRuntimeInitialized = () => {
+    resolve();
+  };
+});
+
+ready.then(() => {
   const seed = new Uint8Array([2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,43,32]);
 
   // hydro_init();
@@ -199,9 +205,10 @@ const result = Module.onRuntimeInitialized = () => {
   // console.log(`Probe verified: ${verification === 0}`);
   // const decryptedBytes = hydro_secretbox_decrypt(cipherText, '12345678', key3);
   // console.log(new TextDecoder().decode(decryptedBytes));
-}
+});
 
 module.exports = {
+  ready,
   hydro_init,
   hydro_random_u32,
   hydro_random_buf,
