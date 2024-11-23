@@ -10,6 +10,11 @@ EXPORTED_FUNCTIONS_LIST:= hydro_init \
 	hydro_random_buf_deterministic \
 	hydro_random_ratchet \
 	hydro_random_reseed \
+	hydro_hash_hash \
+	hydro_hash_keygen \
+	hydro_hash_init \
+	hydro_hash_update \
+	hydro_hash_final \
 	free \
 	malloc
 
@@ -19,7 +24,6 @@ all: build
 
 build:
 	mkdir -p dist
-	@echo $(bar)
 	$(EMCC) \
 		-sEXPORTED_RUNTIME_METHODS=[ccall,cwrap] \
 		-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) \
