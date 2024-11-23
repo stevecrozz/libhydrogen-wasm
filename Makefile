@@ -15,6 +15,9 @@ EXPORTED_FUNCTIONS_LIST:= hydro_init \
 	hydro_hash_init \
 	hydro_hash_update \
 	hydro_hash_final \
+	hydro_secretbox_keygen \
+	hydro_secretbox_encrypt \
+	hydro_secretbox_decrypt \
 	free \
 	malloc
 
@@ -23,15 +26,15 @@ EXPORTED_FUNCTIONS:= $(subst $(EMPTY) $(EMPTY),$(EXPORTED_FUNCTIONS_SEPARATOR),_
 all: build
 
 build:
-	mkdir -p dist
+	mkdir -p wasm
 	$(EMCC) \
 		-sEXPORTED_RUNTIME_METHODS=[ccall,cwrap] \
 		-sEXPORTED_FUNCTIONS=$(EXPORTED_FUNCTIONS) \
-		libhydrogen/hydrogen.c -o dist/hydrogen.js
+		libhydrogen/hydrogen.c -o wasm/libhydrogen.js
 
 test:
-	node dist/hydrogen.js
+	node wasm/hydrogen.js
 
 clean:
 	cd libhydrogen; $(EMMAKE) make clean
-	rm -f dist/hydrogen.*
+	rm -f wasm/libhydrogen.*
