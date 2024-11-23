@@ -12,6 +12,11 @@ function allocateUint8Array(length, contents) {
   }
 
   arr.free = () => Module._free(address);
+  arr.freeAndCopy = () => {
+    const copy = Uint8Array.from(arr);
+    Module._free(address);
+    return copy;
+  };
   arr.ptr = address;
 
   return arr;
@@ -32,16 +37,19 @@ const hydro_random_buf = (size) => {
 
 const hydro_random_buf_deterministic = (size, seed) => {
   const buf = allocateUint8Array(size);
-  Module.ccall('hydro_random_buf_deterministic', 'number', ['number', 'number', 'number'], [buf.ptr, size, seed]);
-  buf.free();
-  return Uint8Array.from(buf);
+  const seedBuf = allocateUint8Array(seed.length, seed);
+
+  Module.ccall('hydro_random_buf_deterministic', 'number', ['number', 'number', 'number'], [buf.ptr, size, seedBuf.ptr]);
+
+  seedBuf.free();
+  return buf.freeAndCopy();
 }
 
 const hydro_hash_keygen = () => {
   const buf = allocateUint8Array(32);
   Module.ccall('hydro_hash_keygen', 'number', ['number'], [buf.ptr]);
-  buf.free();
-  return Uint8Array.from(buf);
+
+  buf.freeAndCopy();
 }
 
 const hydro_hash_hash = (message, context, key) => {
@@ -49,8 +57,8 @@ const hydro_hash_hash = (message, context, key) => {
   keyBuffer.set(key);
   const buf = allocateUint8Array(32);
   Module.ccall('hydro_hash_hash', 'number', ['number', 'number', 'number', 'number', 'number', 'number'], [buf.ptr, 32, message, message.length, context, key.ptr]);
-  buf.free();
-  return Uint8Array.from(buf);
+
+  buf.freeAndCopy();
 }
 
 const hydro_hash_init = (context, key) => {
@@ -66,48 +74,96 @@ const hydro_hash_update = (state, messagePart) => {
 const hydro_hash_final = (state, len) => {
   const hash = allocateUint8Array(len);
   Module.ccall('hydro_hash_final', 'number', ['number', 'number', 'number'], [state.ptr, hash.ptr, len]);
+
   state.free();
-  hash.free();
-  return Uint8Array.from(hash);
+  hash.freeAndCopy();
 }
 
+const hydro_secretbox_CONTEXTBYTES = 8;
+const hydro_secretbox_HEADERBYTES = 20 + 16;
+const hydro_secretbox_KEYBYTES = 32;
+const hydro_secretbox_PROBEBYTES = 16;
+
 const hydro_secretbox_keygen = () => {
-  const buf = allocateUint8Array(32);
+  const buf = allocateUint8Array(hydro_secretbox_KEYBYTES);
   Module.ccall('hydro_secretbox_keygen', 'number', ['number'], [buf.ptr]);
   buf.free();
   return Uint8Array.from(buf);
 }
 
-const hydro_secretbox_HEADERBYTES = 36;
-
 const hydro_secretbox_encrypt = (messageBytes, context, key, id) => {
   const messageBytesBuf = allocateUint8Array(messageBytes.length, messageBytes);
   const cipherTextBuf = allocateUint8Array(hydro_secretbox_HEADERBYTES + messageBytesBuf.length);
-  Module.ccall('hydro_secretbox_encrypt', 'number', ['number', 'number', 'number', 'number', 'number', 'number'], [cipherTextBuf.ptr, messageBytesBuf.ptr, messageBytesBuf.length, id || 0, context, key]);
-  cipherTextBuf.free();
+  const contextBytes = new TextEncoder().encode(context);
+  const contextBuf = allocateUint8Array(contextBytes.length, contextBytes);
+  const keyBuf = allocateUint8Array(key.length, key);
+
+  Module.ccall('hydro_secretbox_encrypt', 'number', ['number', 'number', 'number', 'number', 'number', 'number'], [cipherTextBuf.ptr, messageBytesBuf.ptr, messageBytesBuf.length, id || 0, contextBuf.ptr, keyBuf.ptr]);
+
   messageBytesBuf.free();
-  return Uint8Array.from(cipherTextBuf);
+  contextBuf.free();
+  keyBuf.free();
+
+  return cipherTextBuf.freeAndCopy();
 }
 
 const hydro_secretbox_decrypt = (cipherTextBytes, context, key, id) => {
   const decryptedBytesBuf = allocateUint8Array(cipherTextBytes.length - hydro_secretbox_HEADERBYTES);
   const cipherTextBuf = allocateUint8Array(cipherTextBytes.length, cipherTextBytes);
-  const decryptStatus = Module.ccall('hydro_secretbox_decrypt', 'number', ['number', 'number', 'number', 'number', 'number', 'number'], [decryptedBytesBuf.ptr, cipherTextBuf.ptr, cipherTextBuf.length, id || 0, context, key]);
+  const contextBytes = new TextEncoder().encode(context);
+  const contextBuf = allocateUint8Array(contextBytes.length, contextBytes);
+  const keyBuf = allocateUint8Array(key.length, key);
+
+  const decryptStatus = Module.ccall('hydro_secretbox_decrypt', 'number', ['number', 'number', 'number', 'number', 'number', 'number'], [decryptedBytesBuf.ptr, cipherTextBuf.ptr, cipherTextBuf.length, id || 0, contextBuf.ptr, keyBuf.ptr]);
 
   if (decryptStatus !== 0) {
     throw new Error(`hydro_secretbox_decrypt returned ${decryptStatus}`);
   }
 
-  const decryptedBytes = Uint8Array.from(decryptedBytesBuf);
-
-  decryptedBytesBuf.free();
   cipherTextBuf.free();
+  contextBuf.free();
+  keyBuf.free();
 
-  return decryptedBytes;
+  return decryptedBytesBuf.freeAndCopy();
 }
 
+function cmp(b1, b2) {
+  return new TextDecoder().decode(b1) === new TextDecoder().decode(b2);
+}
+
+const hydro_secretbox_probe_create = (cipherTextBytes, context, key) => {
+  const probeBuf = allocateUint8Array(hydro_secretbox_PROBEBYTES);
+  const cipherTextBuf = allocateUint8Array(cipherTextBytes.length, cipherTextBytes);
+  const keyBuf = allocateUint8Array(key.length, key);
+  const contextBytes = new TextEncoder().encode(context);
+  const contextBuf = allocateUint8Array(contextBytes.length, contextBytes);
+
+  Module.ccall('hydro_secretbox_probe_create', 'number', ['number', 'number', 'number', 'number', 'number'], [probeBuf.ptr, cipherTextBuf.ptr, cipherTextBuf.length, contextBuf.ptr, keyBuf.ptr]);
+
+  cipherTextBuf.free();
+  keyBuf.free();
+  contextBuf.free();
+  return probeBuf.freeAndCopy();
+};
+
+const hydro_secretbox_probe_verify = (probe, cipherTextBytes, context, key) => {
+  const probeBuf = allocateUint8Array(hydro_secretbox_PROBEBYTES, probe);
+  const cipherTextBuf = allocateUint8Array(cipherTextBytes.length, cipherTextBytes);
+  const contextBytes = new TextEncoder().encode(context);
+  const contextBuf = allocateUint8Array(contextBytes.length, contextBytes);
+  const keyBuf = allocateUint8Array(key.length, key);
+
+  const result = Module.ccall('hydro_secretbox_probe_verify', 'number', ['number', 'number', 'number', 'number', 'number'], [probeBuf.ptr, cipherTextBuf.ptr, cipherTextBuf.length, contextBuf.ptr, keyBuf.ptr]);
+
+  probeBuf.free();
+  keyBuf.free();
+  cipherTextBuf.free();
+  contextBuf.free();
+  return result;
+};
+
 const result = Module.onRuntimeInitialized = () => {
-  // const seed = new Uint8Array([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32]);
+  const seed = new Uint8Array([2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,43,32]);
 
   // hydro_init();
   // console.log(hydro_random_u32());
@@ -138,6 +194,9 @@ const result = Module.onRuntimeInitialized = () => {
   // const key3 = hydro_secretbox_keygen();
   // const messageBytes = new TextEncoder().encode('this is my message!!!');
   // const cipherText = hydro_secretbox_encrypt(messageBytes, '12345678', key3);
+  // const probe = hydro_secretbox_probe_create(cipherText, '12345678', key3);
+  // const verification = hydro_secretbox_probe_verify(probe, cipherText, '12345678', key3);
+  // console.log(`Probe verified: ${verification === 0}`);
   // const decryptedBytes = hydro_secretbox_decrypt(cipherText, '12345678', key3);
   // console.log(new TextDecoder().decode(decryptedBytes));
 }
@@ -156,5 +215,7 @@ module.exports = {
   hydro_hash_final,
   hydro_secretbox_keygen,
   hydro_secretbox_encrypt,
-  hydro_secretbox_decrypt
+  hydro_secretbox_decrypt,
+  hydro_secretbox_probe_create,
+  hydro_secretbox_probe_verify,
 }
