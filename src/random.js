@@ -1,7 +1,7 @@
 const Module = require('../wasm/libhydrogen.js');
 const { allocateUint8Array } = require('./utility');
 
-const randomSEEDBYTES = 32;
+const random_SEEDBYTES = 32;
 const randomU32 = Module.cwrap('hydro_random_u32');
 const randomUniform = Module.cwrap('hydro_random_uniform', 'number', ['number']);
 const randomRatchet = Module.cwrap('hydro_random_ratchet');
@@ -10,8 +10,8 @@ const randomReseed = Module.cwrap('hydro_random_reseed');
 const randomBuf = (size) => {
   const buf = allocateUint8Array(size);
   Module.ccall('hydro_random_buf', 'number', ['number', 'number'], [buf.ptr, size]);
-  buf.free();
-  return Uint8Array.from(buf);
+
+  return buf.freeAndCopy();
 }
 
 const randomBufDeterministic = (size, seed) => {
@@ -25,7 +25,7 @@ const randomBufDeterministic = (size, seed) => {
 }
 
 module.exports = {
-  randomSEEDBYTES,
+  random_SEEDBYTES,
   randomU32,
   randomUniform,
   randomRatchet,
