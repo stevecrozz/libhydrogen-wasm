@@ -4,7 +4,7 @@
   "description": "LibHydrogen via WASM",
   "main": "src/hydrogen.js",
   "scripts": {
-    "test": "node --test test/*"
+    "test": "node --no-experimental-fetch --test test/*"
   },
   "repository": {
     "type": "git",

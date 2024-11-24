@@ -1,9 +1,7 @@
-name: Node.js Package
-
+name: Publish
 on:
   release:
     types: [created]
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,7 +11,6 @@ jobs:
         with:
           node-version: 23
       - run: npm test
-
   publish-npm:
     needs: build
     runs-on: ubuntu-latest
