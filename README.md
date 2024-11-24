@@ -1,5 +1,7 @@
 # LibHydrogen
 
+[![Test](https://github.com/stevecrozz/libhydrogen-wasm/actions/workflows/test.yml/badge.svg)](https://github.com/stevecrozz/libhydrogen-wasm/actions/workflows/test.yml)
+
 Making LibHydrogen available to JavaScript through Emscripten.
 
 This interface does not yet expose the entire API. Have a look at the exports to see what's available in src/hydrogen.js:
