@@ -20,6 +20,8 @@ EXPORTED_FUNCTIONS_LIST:= hydro_init \
 	hydro_secretbox_decrypt \
 	hydro_secretbox_probe_create \
 	hydro_secretbox_probe_verify \
+	hydro_kdf_keygen \
+	hydro_kdf_derive_from_key \
 	free \
 	malloc
 

@@ -36,26 +36,21 @@ const {
   secretboxProbeVerify,
 } = require('./secretbox');
 
+const {
+  kdf_CONTEXTBYTES,
+  kdf_KEYBYTES,
+  kdf_BYTES_MAX,
+  kdf_BYTES_MIN,
+  kdfKeygen,
+  kdfDeriveFromKey,
+} = require('./kdf');
+
 const hydro_init = Module.cwrap('hydro_init');
 
 const ready = new Promise((resolve, reject) => {
   Module.onRuntimeInitialized = () => {
     resolve();
   };
-});
-
-ready.then(() => {
-  // /**
-  //  * secretbox test
-  //  */
-  // const key3 = hydro_secretbox_keygen();
-  // const messageBytes = new TextEncoder().encode('this is my message!!!');
-  // const cipherText = hydro_secretbox_encrypt(messageBytes, '12345678', key3);
-  // const probe = hydro_secretbox_probe_create(cipherText, '12345678', key3);
-  // const verification = hydro_secretbox_probe_verify(probe, cipherText, '12345678', key3);
-  // console.log(`Probe verified: ${verification === 0}`);
-  // const decryptedBytes = hydro_secretbox_decrypt(cipherText, '12345678', key3);
-  // console.log(new TextDecoder().decode(decryptedBytes));
 });
 
 module.exports = {
@@ -87,4 +82,10 @@ module.exports = {
   secretboxDecrypt,
   secretboxProbeCreate,
   secretboxProbeVerify,
+  kdf_CONTEXTBYTES,
+  kdf_KEYBYTES,
+  kdf_BYTES_MAX,
+  kdf_BYTES_MIN,
+  kdfKeygen,
+  kdfDeriveFromKey,
 }
