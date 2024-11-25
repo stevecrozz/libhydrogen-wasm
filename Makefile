@@ -22,6 +22,14 @@ EXPORTED_FUNCTIONS_LIST:= hydro_init \
 	hydro_secretbox_probe_verify \
 	hydro_kdf_keygen \
 	hydro_kdf_derive_from_key \
+	hydro_sign_create \
+	hydro_sign_final_create \
+	hydro_sign_final_verify \
+	hydro_sign_init \
+	hydro_sign_keygen \
+	hydro_sign_keygen_deterministic \
+	hydro_sign_update \
+	hydro_sign_verify \
 	free \
 	malloc
 

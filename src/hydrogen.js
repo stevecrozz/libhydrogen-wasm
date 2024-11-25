@@ -37,6 +37,18 @@ const {
 } = require('./secretbox');
 
 const {
+  sign_BYTES,
+  sign_CONTEXTBYTES,
+  sign_PUBLICKEYBYTES,
+  sign_SECRETKEYBYTES,
+  sign_SEEDBYTES,
+  signKeygen,
+  signKeygenDeterministic,
+  signCreate,
+  signVerify,
+} = require('./sign');
+
+const {
   kdf_CONTEXTBYTES,
   kdf_KEYBYTES,
   kdf_BYTES_MAX,
@@ -88,4 +100,13 @@ module.exports = {
   kdf_BYTES_MIN,
   kdfKeygen,
   kdfDeriveFromKey,
+  sign_BYTES,
+  sign_CONTEXTBYTES,
+  sign_PUBLICKEYBYTES,
+  sign_SECRETKEYBYTES,
+  sign_SEEDBYTES,
+  signKeygen,
+  signKeygenDeterministic,
+  signCreate,
+  signVerify,
 }
