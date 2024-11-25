@@ -46,6 +46,10 @@ const {
   signKeygenDeterministic,
   signCreate,
   signVerify,
+  signInit,
+  signUpdate,
+  signFinalCreate,
+  signFinalVerify,
 } = require('./sign');
 
 const {
@@ -109,4 +113,8 @@ module.exports = {
   signKeygenDeterministic,
   signCreate,
   signVerify,
+  signInit,
+  signUpdate,
+  signFinalCreate,
+  signFinalVerify,
 }
