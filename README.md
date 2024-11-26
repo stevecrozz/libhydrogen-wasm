@@ -4,29 +4,72 @@
 
 Making LibHydrogen available to JavaScript through Emscripten.
 
-This interface does not yet expose the entire API. Have a look at the exports to see what's available in src/hydrogen.js:
+The goal of this project is to expose the complete LibHydrogen API and make it
+runnable in both Node.JS and browser runtimes.
 
 ## Random
 ~~~js
-import { ready, hydro_random_uniform } from 'libhydrogen-wasm';
+import { ready, randomU32 } from "libhydrogen-wasm";
 
 ready.then(() => {
-  console.log(hydro_random_uniform(9999));
+  randomU32();
 });
-
-console.log(hydrogen.hydro_random_u32());
 ~~~
 
-## Secret Key Encryption
+## Hashing
 ~~~js
-import { ready, hydro_secretbox_keygen, hydro_secretbox_encrypt, hydro_secretbox_decrypt } from 'libhydrogen-wasm';
+import { ready, hashHash, hashKeygen } from "libhydrogen-wasm";
 
 ready.then(() => {
-  const key = hydro_secretbox_keygen();
-  const messageBytes = new TextEncoder().encode('this is my message!!!');
-  const cipherTextBytes = hydro_secretbox_encrypt(messageBytes, '12345678', key);
-  const decryptedBytes = hydro_secretbox_decrypt(cipherTextBytes, '12345678', key);
-  console.log(new TextDecoder().decode(decryptedBytes));
-  // prints "this is my message!!!";
+  const key = hashKeygen();
+  hashHash("Arbitrary data to hash", "Examples", key);
+});
+~~~
+
+## Key Derivation
+~~~js
+import { ready, kdfKeygen, kdfDeriveFromKey } from "libhydrogen-wasm";
+
+ready.then(() => {
+  const key = kdfKeygen();
+  const subkey = kdfDeriveFromKey(40, 0, 'CCCCCCCC', key);
+});
+~~~
+
+## Signing
+~~~js
+import { ready, signKeygen, signCreate, signVerify } from "libhydrogen-wasm";
+
+ready.then(() => {
+  const { pk, sk } = signKeygen();
+  const key = kdfKeygen();
+  const signature = signCreate('my message', '12345678', sk);
+  const verification = signVerify(signature, 'my message', '12345678', pk);
+});
+~~~
+
+## Encryption
+~~~js
+import { ready, secretboxKeygen, secretboxEncrypt, secretboxDecrypt } from "libhydrogen-wasm";
+
+ready.then(() => {
+  const messageBytes = new TextEncoder().encode('test message');
+  const key = secretboxKeygen();
+  const cipherText = secretboxEncrypt(messageBytes, '12345678', key);
+  const decryptedBytes = secretboxDecrypt(cipherText, '12345678', key);
+});
+~~~
+
+## Key Exchange N1
+~~~js
+import { ready, kxKeygen, kxN1, kxN2 } from "libhydrogen-wasm";
+
+ready.then(() => {
+  const serverStaticKp = kxKeygen();
+  const client = kxN1(null, serverStaticKp.pk);
+  const server = kxN2(client.packet, null, serverStaticKp);
+
+  // client.tx === server.rx
+  // server.tx === client.rx
 });
 ~~~

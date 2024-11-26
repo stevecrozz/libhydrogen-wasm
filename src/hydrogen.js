@@ -61,6 +61,17 @@ const {
   kdfDeriveFromKey,
 } = require('./kdf');
 
+const {
+  kx_SESSIONKEYBYTES,
+  kx_PUBLICKEYBYTES,
+  kx_SECRETKEYBYTES,
+  kx_PSKBYTES,
+  kxKeygen,
+  kxKeygenDeterministic,
+  kxN1,
+  kxN2,
+} = require('./kx');
+
 const hydro_init = Module.cwrap('hydro_init');
 
 const ready = new Promise((resolve, reject) => {
@@ -117,4 +128,12 @@ module.exports = {
   signUpdate,
   signFinalCreate,
   signFinalVerify,
+  kx_SESSIONKEYBYTES,
+  kx_PUBLICKEYBYTES,
+  kx_SECRETKEYBYTES,
+  kx_PSKBYTES,
+  kxKeygen,
+  kxKeygenDeterministic,
+  kxN1,
+  kxN2,
 }

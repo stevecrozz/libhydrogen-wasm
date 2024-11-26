@@ -30,6 +30,10 @@ EXPORTED_FUNCTIONS_LIST:= hydro_init \
 	hydro_sign_keygen_deterministic \
 	hydro_sign_update \
 	hydro_sign_verify \
+	hydro_kx_keygen \
+	hydro_kx_keygen_deterministic \
+	hydro_kx_n_1 \
+	hydro_kx_n_2 \
 	free \
 	malloc
 
